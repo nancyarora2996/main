@@ -4,12 +4,9 @@
   "main": "index.js",
   "scripts": {
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run"
+    "cypress:run": "cypress run",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "Nancy",
-  "license": "ISC",
-  "description": "",
   "devDependencies": {
     "@types/node": "^22.13.4",
     "cypress": "^14.0.3",
