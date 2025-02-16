@@ -1,7 +1,7 @@
 // cypress/e2e/series.spec.ts
 
 describe('Valet API - Series Tests', () => {
-  // Helper to compute average of an array of numbers.
+  // Helper to compute the average of an array of numbers.
   const computeAverage = (values: number[]): number => {
     const total = values.reduce((sum, num) => sum + num, 0);
     return total / values.length;
@@ -12,7 +12,7 @@ describe('Valet API - Series Tests', () => {
     return date.toISOString().split('T')[0];
   };
 
-  // Reusable function to test various currency pairs.
+  // Reusable function to test a currency pair.
   const testCurrencyPair = (seriesId: string, label: string) => {
     it(`should get the average rate for ${label} over the past 10 weeks`, () => {
       const endDate = new Date();
@@ -22,6 +22,7 @@ describe('Valet API - Series Tests', () => {
 
       cy.request({
         method: 'GET',
+        // Include the format in the URL path.
         url: `/observations/${seriesId}/json`,
         qs: {
           start_date: formatDate(startDate),
@@ -36,7 +37,7 @@ describe('Valet API - Series Tests', () => {
         expect(observations).to.be.an('array').and.have.length.greaterThan(0);
 
         // Extract numeric rates from observations.
-        // Expected structure: { d: "YYYY-MM-DD", FXCADUSD: { v: "0.7443" } }
+        // Expected structure: { d: "YYYY-MM-DD", <seriesId>: { v: "0.7443" } }
         const rates: number[] = observations
           .map((obs: any) => {
             const rateObj = obs[seriesId];
@@ -52,19 +53,25 @@ describe('Valet API - Series Tests', () => {
     });
   };
 
-  // Positive scenarios.
-  testCurrencyPair('FXCADUSD', 'CAD to USD');
-  testCurrencyPair('FXCADEUR', 'CAD to EUR');
+  // Define an array of currency pairs.
+  const currencyPairs = [
+    { seriesId: 'FXCADUSD', label: 'CAD to USD' },
+    { seriesId: 'FXCADEUR', label: 'CAD to EUR' },
+    { seriesId: 'FXCADGBP', label: 'CAD to GBP' } // Add more pairs as needed.
+  ];
 
-  // Additional Test 1: Default behavior when no date range or recent parameter provided.
-  // This test verifies that the API returns a default set of observations.
+  // Run the positive test for each currency pair.
+  currencyPairs.forEach(pair => {
+    testCurrencyPair(pair.seriesId, pair.label);
+  });
+
+  // Additional Test 1: Default behavior when no date range or recent parameter is provided.
   it('should return a default set of observations when no date range or recent parameter is provided', () => {
     cy.request({
       method: 'GET',
       url: `/observations/FXCADUSD/json`,
       failOnStatusCode: false
     }).then((response) => {
-      // Expecting a 200 response and a non-empty observations array.
       expect(response.status).to.eq(200);
       expect(response.body).to.have.property('observations');
       const observations = response.body.observations;
@@ -79,9 +86,7 @@ describe('Valet API - Series Tests', () => {
       url: `/observations/INVALID_SERIES/json`,
       failOnStatusCode: false
     }).then((response) => {
-      // Expecting non-200 (likely 400 or 404).
       expect(response.status).to.not.eq(200);
-      // Check for the error message property.
       expect(response.body).to.have.property('message');
     });
   });
@@ -90,8 +95,7 @@ describe('Valet API - Series Tests', () => {
   it('should return an error for an invalid date range', () => {
     const endDate = new Date();
     const startDate = new Date();
-    // Set start date to one day after end date.
-    startDate.setDate(endDate.getDate() + 1);
+    startDate.setDate(endDate.getDate() + 1); // Start date is after end date.
 
     cy.request({
       method: 'GET',
@@ -102,7 +106,6 @@ describe('Valet API - Series Tests', () => {
       },
       failOnStatusCode: false
     }).then((response) => {
-      // Expect a 400 status for an invalid date range.
       expect(response.status).to.eq(400);
       expect(response.body).to.have.property('message');
     });
@@ -134,7 +137,6 @@ describe('Valet API - Series Tests', () => {
       expect(response.body).to.have.property('observations');
       const observations = response.body.observations;
       expect(observations).to.be.an('array');
-      // The number of observations should be less than or equal to the recentCount.
       expect(observations.length).to.be.at.most(recentCount);
     });
   });
@@ -158,9 +160,7 @@ describe('Valet API - Series Tests', () => {
       expect(response.body).to.have.property('observations');
       const observations = response.body.observations;
       expect(observations).to.be.an('array').and.have.length.greaterThan(0);
-      // Extract dates from observations.
       const dates = observations.map((obs: any) => new Date(obs.d));
-      // Check that dates are sorted in ascending order.
       const sortedDates = [...dates].sort((a, b) => a.getTime() - b.getTime());
       expect(dates).to.deep.equal(sortedDates);
     });
@@ -182,7 +182,6 @@ describe('Valet API - Series Tests', () => {
       },
       failOnStatusCode: false
     }).then((response) => {
-      // Expect a 400 status due to conflicting parameters.
       expect(response.status).to.eq(400);
       expect(response.body).to.have.property('message');
     });
@@ -199,11 +198,10 @@ describe('Valet API - Series Tests', () => {
       qs: {
         start_date: formatDate(startDate),
         end_date: formatDate(endDate),
-        order_dir: 'invalid'  // Unsupported value
+        order_dir: 'invalid'  // Unsupported value.
       },
       failOnStatusCode: false
     }).then((response) => {
-      // Expect a 400 error for an unsupported order_dir.
       expect(response.status).to.eq(400);
       expect(response.body).to.have.property('message');
     });
@@ -222,8 +220,6 @@ describe('Valet API - Series Tests', () => {
       },
       failOnStatusCode: false
     }).then((response) => {
-      // Depending on API behavior, this might return 200 with observations for that date or 404 if none exist.
-      // Here, we check for a 200 and ensure the observations array exists (it may be empty).
       expect(response.status).to.eq(200);
       expect(response.body).to.have.property('observations');
       expect(response.body.observations).to.be.an('array');
