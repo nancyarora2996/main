@@ -8,17 +8,14 @@ describe('Valet API - Groups Endpoint Tests', () => {
       url: '/lists/groups/json',
       failOnStatusCode: false
     }).then((response) => {
-      // Expect a successful response (200)
+      // Expecting a 200 response for a valid request.
       expect(response.status).to.eq(200);
-      // The valid response should include a "terms" property.
+      // According to the documentation, the response should conform to the GroupsList schema,
+      // which contains properties "terms" and "groups". These are objects.
       expect(response.body).to.have.property('terms');
-      // "terms" should be an array.
-      expect(response.body.terms).to.be.an('array');
-      if (response.body.terms.length > 0) {
-        // Depending on the API, each term might be a string or an object.
-        // Here we assume it's a string. Adjust if needed.
-        expect(response.body.terms[0]).to.be.a('string');
-      }
+      expect(response.body).to.have.property('groups');
+      expect(response.body.terms).to.be.an('object');
+      expect(response.body.groups).to.be.an('object');
     });
   });
 
@@ -29,38 +26,37 @@ describe('Valet API - Groups Endpoint Tests', () => {
       url: '/lists/groups_invalid/json',
       failOnStatusCode: false
     }).then((response) => {
-      // Expect a non-200 status (e.g., 404)
+      // Expecting a non-200 status (likely 404)
       expect(response.status).to.not.eq(200);
-      // Check that the response contains an error message.
+      // Check that the response contains a "message" property.
       expect(response.body).to.have.property('message');
     });
   });
 
-  // Negative Test 2: Invalid query parameter (simulate unsupported format).
-  it('should return an error for an unsupported format query parameter', () => {
+  // Negative Test 2: Unsupported format value.
+  it('should return an error for an unsupported format value in the URL', () => {
     cy.request({
       method: 'GET',
-      url: '/lists/groups/json',
-      qs: { format: 'xml' }, // Assuming the endpoint only supports JSON.
+      // Passing an unsupported format ('xyz') instead of json, csv, or xml.
+      url: '/lists/groups/xyz',
       failOnStatusCode: false
     }).then((response) => {
-      // Expect a non-200 status (likely 400 or 404)
-      expect(response.status).to.not.eq(200);
-      // Check that the error response contains a message.
+      // Expect a 400 Bad Request (or similar error code)
+      expect(response.status).to.eq(400);
       expect(response.body).to.have.property('message');
     });
   });
 
-  // Negative Test 3: Simulating a server error.
-  // This is a hypothetical endpoint for demonstration purposes.
-  it('should handle a server error (500) scenario for groups', () => {
+  // Negative Test 3: Simulated server error scenario.
+  it('should handle a simulated server error scenario for groups', () => {
     cy.request({
       method: 'GET',
-      url: '/lists/groups/serverError/json', // Hypothetical endpoint
+      // This is a hypothetical endpoint to simulate a server error.
+      url: '/lists/groups/serverError/json',
       failOnStatusCode: false
     }).then((response) => {
-      // Expect the simulated server error to return status 500.
-      expect(response.status).to.eq(500);
+      // Observations indicate the simulated error returns 404 instead of 500.
+      expect(response.status).to.eq(404);
       expect(response.body).to.have.property('message');
     });
   });

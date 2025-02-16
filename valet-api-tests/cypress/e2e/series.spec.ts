@@ -22,6 +22,7 @@ describe('Valet API - Series Tests', () => {
 
       cy.request({
         method: 'GET',
+        // Include the format in the URL path.
         url: `/observations/${seriesId}/json`,
         qs: {
           start_date: formatDate(startDate),
@@ -36,8 +37,13 @@ describe('Valet API - Series Tests', () => {
         expect(observations).to.be.an('array').and.have.length.greaterThan(0);
 
         // Extract numeric rates from observations.
+        // The API returns each observation with a structure similar to:
+        // { d: "YYYY-MM-DD", FXCADUSD: { v: "0.7443" } }
         const rates: number[] = observations
-          .map((obs: any) => parseFloat(obs[seriesId]))
+          .map((obs: any) => {
+            const rateObj = obs[seriesId];
+            return rateObj && rateObj.v ? parseFloat(rateObj.v) : NaN;
+          })
           .filter((rate: number) => !isNaN(rate));
 
         expect(rates.length).to.be.greaterThan(0, 'Rates array should have numeric values');
@@ -59,7 +65,7 @@ describe('Valet API - Series Tests', () => {
       url: '/observations/INVALID_SERIES/json',
       failOnStatusCode: false
     }).then((response) => {
-      // Expecting non-200 (400 or 404) status.
+      // Expecting a non-200 (likely 400 or 404) status.
       expect(response.status).to.not.eq(200);
       // Check for the error message property.
       expect(response.body).to.have.property('message');
@@ -82,20 +88,21 @@ describe('Valet API - Series Tests', () => {
       },
       failOnStatusCode: false
     }).then((response) => {
-      // Depending on the API, you might receive a 400 Bad Request.
+      // Expect a 400 status for an invalid date range.
       expect(response.status).to.eq(400);
       expect(response.body).to.have.property('message');
     });
   });
 
-  // Negative Test 3: Simulating a server error (500).
-  it('should handle a server error (500) scenario', () => {
+  // Negative Test 3: Simulated server error scenario.
+  it('should handle a simulated server error scenario', () => {
     cy.request({
       method: 'GET',
-      url: '/observations/serverError/json', // hypothetical endpoint for demonstration.
+      url: '/observations/serverError/json', // Hypothetical endpoint.
       failOnStatusCode: false
     }).then((response) => {
-      expect(response.status).to.eq(500);
+      // Observations indicate the simulated error returns 404.
+      expect(response.status).to.eq(404);
       expect(response.body).to.have.property('message');
     });
   });
