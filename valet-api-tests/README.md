@@ -87,8 +87,7 @@ This project is a lightweight API automation framework built using Cypress with 
 - **Security Testing:**  
   Add basic security tests to verify authentication, authorization, and that sensitive information is not exposed.
 
-## How to Run the Tests
 
-1. **Install Dependencies:**  
-   ```bash
-   npm install
+ 
+ 
+ 
