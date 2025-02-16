@@ -9,7 +9,6 @@ export default defineConfig({
     specPattern: 'cypress/e2e/**/*.spec.{js,jsx,ts,tsx}',
     defaultCommandTimeout: 10000,
     requestTimeout: 15000,
-    // Capture screenshots on failure is enabled by default;
     screenshotOnRunFailure: true,
     video: false,
     setupNodeEvents(on, config) {
@@ -20,16 +19,15 @@ export default defineConfig({
       return config;
     }
   },
-  // Primary reporter set to Mochawesome.
   reporter: 'cypress-mochawesome-reporter',
   reporterOptions: {
-    charts: true,                // Enable charts in the report.
+    charts: true,                // Enable charts (default pie chart)
     reportPageTitle: 'Valet API Test Report',
-    embeddedScreenshots: true,   // Embed screenshots directly in the HTML report.
-    inlineAssets: true,          // Inline CSS and JS assets for portability.
-    reportFilename: 'Report', // Custom report name with a timestamp.
+    embeddedScreenshots: true,   // Embed screenshots in the report
+    inlineAssets: true,          // Inline CSS and JS for portability
+    reportFilename: 'Report', // Custom report name; timestamp will be appended
     overwrite: false,
-    timestamp: 'mmddyyyy_HHMMss'  // Timestamp format appended to the report name.
+    timestamp: 'mmddyyyy_HHMMss'
   },
   env: {
     allure: true // Enable Allure reporting.
