@@ -2,10 +2,15 @@
   "name": "valet-api-tests",
   "version": "1.0.0",
   "main": "index.js",
+   
+
   "scripts": {
-    "cypress:run": "cypress run",
-    "cypress:open": "cypress open"
-  },
+  "cypress:open": "cypress open",
+  "cypress:run": "cypress run",
+  "test": "echo \"Error: no test specified\" && exit 1"
+},
+
+
   "devDependencies": {
     "@shelex/cypress-allure-plugin": "^2.40.2",
     "@types/node": "^22.13.4",
